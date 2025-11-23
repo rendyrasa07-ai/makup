@@ -3,14 +3,28 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please check your .env file.');
+const useMockData = !supabaseUrl || !supabaseAnonKey;
+
+if (useMockData) {
+  console.log('Running in mock mode - Supabase not configured');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+const mockClient = {
+  auth: {
+    signUp: async () => ({ data: { user: null }, error: new Error('Mock mode') }),
+    signIn: async () => ({ data: { user: null }, error: new Error('Mock mode') }),
+    signOut: async () => ({ error: null }),
+    getSession: async () => ({ data: { session: null }, error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+  }
+};
+
+export const supabase = useMockData ? mockClient : createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true
   }
 });
+
+export const isMockMode = useMockData;

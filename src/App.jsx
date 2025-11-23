@@ -13,6 +13,8 @@ import Leads from "./pages/leads";
 import Settings from "./pages/settings";
 import Profile from "./pages/profile";
 import PublicLeadForm from "./pages/leads/PublicLeadForm";
+import Booking from "./pages/booking";
+import Gallery from "./pages/gallery";
 
 function App() {
     return (
@@ -31,6 +33,8 @@ function App() {
                     <Route path="/service-packages" element={<ServicePackages />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/signup" element={<Signup />} />
+                    <Route path="/booking" element={<Booking />} />
+                    <Route path="/gallery" element={<Gallery />} />
                     <Route path="/public-lead-form" element={<PublicLeadForm />} />
                     <Route path="*" element={<NotFound />} />
                 </Routes>
