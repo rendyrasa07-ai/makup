@@ -3,16 +3,20 @@ import { Helmet } from 'react-helmet';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 import { dataStore } from '../../utils/dataStore';
+import AddProjectModal from './components/AddProjectModal';
+import EditProjectModal from './components/EditProjectModal';
+import CalendarView from './components/CalendarView';
 
 const ProjectManagement = () => {
   const [projects, setProjects] = useState([]);
-  const [filter, setFilter] = useState('all'); // all, upcoming, in-progress, completed
+  const [filter, setFilter] = useState('all');
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'calendar'
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    // Load projects from localStorage or use mock data
     const saved = dataStore.get('makeup_projects', []);
     if (saved.length === 0) {
       const mockProjects = [
@@ -75,6 +79,41 @@ const ProjectManagement = () => {
       setProjects(saved);
     }
   }, []);
+
+  const saveProjects = (updatedProjects) => {
+    setProjects(updatedProjects);
+    dataStore.set('makeup_projects', updatedProjects);
+  };
+
+  const handleAddProject = (projectData) => {
+    const { nanoid } = require('nanoid');
+    const newProject = {
+      ...projectData,
+      id: nanoid(),
+      createdAt: new Date().toISOString().split('T')[0],
+      images: []
+    };
+    
+    const updatedProjects = [newProject, ...projects];
+    saveProjects(updatedProjects);
+    setIsAddModalOpen(false);
+  };
+
+  const handleEditProject = (updatedProject) => {
+    const updatedProjects = projects.map(p => 
+      p.id === updatedProject.id ? updatedProject : p
+    );
+    saveProjects(updatedProjects);
+    setEditingProject(null);
+  };
+
+  const handleDeleteProject = (projectId) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus proyek ini?')) {
+      const updatedProjects = projects.filter(p => p.id !== projectId);
+      saveProjects(updatedProjects);
+      setSelectedProject(null);
+    }
+  };
 
   const filteredProjects = projects.filter(project => {
     const matchesFilter = filter === 'all' || project.status === filter;
@@ -145,13 +184,34 @@ const ProjectManagement = () => {
                   Kelola semua proyek makeup Anda
                 </p>
               </div>
-              <Button
-                variant="primary"
-                onClick={() => setIsAddModalOpen(true)}
-              >
-                <Icon name="Plus" size={20} />
-                <span className="hidden sm:inline ml-2">Tambah Proyek</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <div className="hidden sm:flex bg-surface rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`px-3 py-2 rounded-md transition-smooth ${
+                      viewMode === 'grid' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Icon name="LayoutGrid" size={18} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('calendar')}
+                    className={`px-3 py-2 rounded-md transition-smooth ${
+                      viewMode === 'calendar' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Icon name="Calendar" size={18} />
+                  </button>
+                </div>
+                <Button variant="primary" onClick={() => setIsAddModalOpen(true)}>
+                  <Icon name="Plus" size={20} />
+                  <span className="hidden sm:inline ml-2">Tambah Proyek</span>
+                </Button>
+              </div>
             </div>
 
             {/* Stats Cards */}
@@ -195,132 +255,191 @@ const ProjectManagement = () => {
               </div>
             </div>
 
-            {/* Search and Filter */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Icon 
-                  name="Search" 
-                  size={20} 
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" 
-                />
-                <input
-                  type="text"
-                  placeholder="Cari proyek atau klien..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-surface border border-input rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+            {viewMode === 'grid' && (
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Icon 
+                    name="Search" 
+                    size={20} 
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" 
+                  />
+                  <input
+                    type="text"
+                    placeholder="Cari proyek atau klien..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-surface border border-input rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div className="flex gap-2 overflow-x-auto">
+                  {[
+                    { value: 'all', label: 'Semua' },
+                    { value: 'upcoming', label: 'Akan Datang' },
+                    { value: 'in-progress', label: 'Progress' },
+                    { value: 'completed', label: 'Selesai' }
+                  ].map(item => (
+                    <button
+                      key={item.value}
+                      onClick={() => setFilter(item.value)}
+                      className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-smooth ${
+                        filter === item.value
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-surface text-foreground hover:bg-muted'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-2 overflow-x-auto">
-                {[
-                  { value: 'all', label: 'Semua' },
-                  { value: 'upcoming', label: 'Akan Datang' },
-                  { value: 'in-progress', label: 'Progress' },
-                  { value: 'completed', label: 'Selesai' }
-                ].map(item => (
-                  <button
-                    key={item.value}
-                    onClick={() => setFilter(item.value)}
-                    className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-smooth ${
-                      filter === item.value
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-surface text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
 
-          {/* Projects Grid */}
-          {filteredProjects.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                <Icon name="Briefcase" size={40} color="var(--color-muted-foreground)" />
-              </div>
-              <h3 className="text-lg font-heading font-semibold text-foreground mb-2">
-                {searchQuery ? 'Tidak Ada Hasil' : 'Belum Ada Proyek'}
-              </h3>
-              <p className="text-sm text-muted-foreground mb-6">
-                {searchQuery 
-                  ? 'Coba ubah kata kunci pencarian'
-                  : 'Mulai tambahkan proyek makeup Anda'
-                }
-              </p>
-              {!searchQuery && (
-                <Button variant="primary" onClick={() => setIsAddModalOpen(true)}>
-                  <Icon name="Plus" size={20} />
-                  <span className="ml-2">Tambah Proyek Pertama</span>
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredProjects.map((project) => {
-                const progress = calculateProgress(project.paid, project.budget);
-                return (
-                  <div
-                    key={project.id}
-                    className="bg-card border border-border rounded-xl p-5 hover:shadow-lg transition-smooth cursor-pointer"
-                    onClick={() => setSelectedProject(project)}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-heading font-bold text-foreground mb-1">
-                          {project.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Icon name="User" size={14} />
-                          {project.client}
-                        </p>
-                      </div>
-                      {getStatusBadge(project.status)}
-                    </div>
+          {/* Calendar View */}
+          {viewMode === 'calendar' && (
+            <CalendarView 
+              projects={projects} 
+              onProjectClick={setSelectedProject}
+              onEditProject={setEditingProject}
+              onDeleteProject={handleDeleteProject}
+            />
+          )}
 
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Icon name="Tag" size={16} />
-                        <span>{project.type}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Icon name="Calendar" size={16} />
-                        <span>{formatDate(project.date)}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Icon name="MapPin" size={16} />
-                        <span className="truncate">{project.location}</span>
-                      </div>
-                    </div>
-
-                    <div className="border-t border-border pt-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-muted-foreground">Pembayaran</span>
-                        <span className="text-sm font-semibold text-foreground">{progress}%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2 mb-2">
-                        <div
-                          className="bg-primary h-2 rounded-full transition-all"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          {formatCurrency(project.paid).replace('IDR', 'Rp').replace(',00', '')}
-                        </span>
-                        <span className="font-semibold text-foreground">
-                          {formatCurrency(project.budget).replace('IDR', 'Rp').replace(',00', '')}
-                        </span>
-                      </div>
-                    </div>
+          {/* Grid View */}
+          {viewMode === 'grid' && (
+            <>
+              {filteredProjects.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                    <Icon name="Briefcase" size={40} color="var(--color-muted-foreground)" />
                   </div>
-                );
-              })}
-            </div>
+                  <h3 className="text-lg font-heading font-semibold text-foreground mb-2">
+                    {searchQuery ? 'Tidak Ada Hasil' : 'Belum Ada Proyek'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    {searchQuery 
+                      ? 'Coba ubah kata kunci pencarian'
+                      : 'Mulai tambahkan proyek makeup Anda'
+                    }
+                  </p>
+                  {!searchQuery && (
+                    <Button variant="primary" onClick={() => setIsAddModalOpen(true)}>
+                      <Icon name="Plus" size={20} />
+                      <span className="ml-2">Tambah Proyek Pertama</span>
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredProjects.map((project) => {
+                    const progress = calculateProgress(project.paid, project.budget);
+                    return (
+                      <div
+                        key={project.id}
+                        className="bg-card border border-border rounded-xl p-5 hover:shadow-lg transition-smooth group"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 cursor-pointer" onClick={() => setSelectedProject(project)}>
+                            <h3 className="font-heading font-bold text-foreground mb-1">
+                              {project.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Icon name="User" size={14} />
+                              {project.client}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {getStatusBadge(project.status)}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 mb-4 cursor-pointer" onClick={() => setSelectedProject(project)}>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Icon name="Tag" size={16} />
+                            <span>{project.type}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Icon name="Calendar" size={16} />
+                            <span>{formatDate(project.date)}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Icon name="MapPin" size={16} />
+                            <span className="truncate">{project.location}</span>
+                          </div>
+                        </div>
+
+                        <div className="border-t border-border pt-3 mb-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-muted-foreground">Pembayaran</span>
+                            <span className="text-sm font-semibold text-foreground">{progress}%</span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2 mb-2">
+                            <div
+                              className="bg-primary h-2 rounded-full transition-all"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              {formatCurrency(project.paid).replace('IDR', 'Rp').replace(',00', '')}
+                            </span>
+                            <span className="font-semibold text-foreground">
+                              {formatCurrency(project.budget).replace('IDR', 'Rp').replace(',00', '')}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 pt-3 border-t border-border">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingProject(project);
+                            }}
+                          >
+                            <Icon name="Edit" size={16} />
+                            <span className="ml-1">Edit</span>
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteProject(project.id);
+                            }}
+                            className="text-error hover:bg-error/10"
+                          >
+                            <Icon name="Trash2" size={16} />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </main>
 
+        {/* Add Project Modal */}
+        {isAddModalOpen && (
+          <AddProjectModal
+            onClose={() => setIsAddModalOpen(false)}
+            onSave={handleAddProject}
+          />
+        )}
+
+        {/* Edit Project Modal */}
+        {editingProject && (
+          <EditProjectModal
+            project={editingProject}
+            onClose={() => setEditingProject(null)}
+            onSave={handleEditProject}
+          />
+        )}
         {/* Project Detail Modal */}
         {selectedProject && (
           <div
@@ -383,43 +502,49 @@ const ProjectManagement = () => {
                         <p className="font-medium text-foreground">{selectedProject.location}</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <Icon name="FileText" size={20} color="var(--color-primary)" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Deskripsi</p>
-                        <p className="font-medium text-foreground">{selectedProject.description}</p>
+                    {selectedProject.description && (
+                      <div className="flex items-start gap-3">
+                        <Icon name="FileText" size={20} color="var(--color-primary)" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Deskripsi</p>
+                          <p className="font-medium text-foreground">{selectedProject.description}</p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Team */}
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">TIM</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProject.team.map((member, idx) => (
-                      <span
-                        key={idx}
-                        className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
-                      >
-                        {member}
-                      </span>
-                    ))}
+                {selectedProject.team && selectedProject.team.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-3">TIM</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProject.team.map((member, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                        >
+                          {member}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Services */}
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">LAYANAN</h3>
-                  <div className="space-y-2">
-                    {selectedProject.services.map((service, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <Icon name="Check" size={16} color="var(--color-primary)" />
-                        <span className="text-foreground">{service}</span>
-                      </div>
-                    ))}
+                {selectedProject.services && selectedProject.services.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-3">LAYANAN</h3>
+                    <div className="space-y-2">
+                      {selectedProject.services.map((service, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <Icon name="Check" size={16} color="var(--color-primary)" />
+                          <span className="text-foreground">{service}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Budget */}
                 <div>
@@ -463,6 +588,29 @@ const ProjectManagement = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4 border-t border-border">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      setEditingProject(selectedProject);
+                      setSelectedProject(null);
+                    }}
+                  >
+                    <Icon name="Edit" size={20} />
+                    <span className="ml-2">Edit Proyek</span>
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => handleDeleteProject(selectedProject.id)}
+                    className="text-error hover:bg-error/10"
+                  >
+                    <Icon name="Trash2" size={20} />
+                    <span className="ml-2">Hapus</span>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
