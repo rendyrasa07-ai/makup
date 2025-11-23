@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import HorizontalNavigation from '../../components/ui/HorizontalNavigation';
-import BottomNavigation from '../../components/ui/BottomNavigation';
 import Icon from '../../components/AppIcon';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -43,7 +41,6 @@ const Profile = () => {
                 <title>Profil - MUA Finance Manager</title>
             </Helmet>
             <div className="min-h-screen bg-background">
-                <HorizontalNavigation />
                 <main className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-6">
                     <div className="mb-6">
                         <div className="flex items-center gap-3 mb-2">
@@ -176,7 +173,6 @@ const Profile = () => {
                         </div>
                     </div>
                 </main>
-                <BottomNavigation />
             </div>
         </>
     );

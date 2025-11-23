@@ -3,8 +3,6 @@ import { Helmet } from 'react-helmet';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 import Select from '../../components/ui/Select';
-import HorizontalNavigation from '../../components/ui/HorizontalNavigation';
-import BottomNavigation from '../../components/ui/BottomNavigation';
 import QuickActionButton from '../../components/ui/QuickActionButton';
 import PackageCard from './components/PackageCard';
 import PackageFormModal from './components/PackageFormModal';
@@ -305,7 +303,6 @@ const ServicePackages = () => {
         <meta name="description" content="Kelola paket layanan makeup untuk Akad, Resepsi, dan Wisuda dengan harga dan detail lengkap" />
       </Helmet>
       <div className="min-h-screen bg-background">
-        <HorizontalNavigation />
 
         <main className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-6">
           {/* Header */}
@@ -415,7 +412,6 @@ const ServicePackages = () => {
           </div>
         </main>
 
-        <BottomNavigation />
 
         <PackageFormModal
           isOpen={isModalOpen}

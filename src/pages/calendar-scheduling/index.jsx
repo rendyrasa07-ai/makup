@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import HorizontalNavigation from '../../components/ui/HorizontalNavigation';
-import BottomNavigation from '../../components/ui/BottomNavigation';
 import QuickActionButton from '../../components/ui/QuickActionButton';
 import CalendarHeader from './components/CalendarHeader';
 import MonthView from './components/MonthView';
@@ -170,7 +168,6 @@ const CalendarScheduling = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <HorizontalNavigation />
 
       <main className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-6">
         <CalendarHeader
@@ -234,7 +231,6 @@ const CalendarScheduling = () => {
         </div>
       </main>
 
-      <BottomNavigation />
 
       <AppointmentModal
         isOpen={isAppointmentModalOpen}

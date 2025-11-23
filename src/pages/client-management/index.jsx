@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import HorizontalNavigation from '../../components/ui/HorizontalNavigation';
-import BottomNavigation from '../../components/ui/BottomNavigation';
 import ClientSearchFilter from '../../components/ui/ClientSearchFilter';
 import QuickActionButton from '../../components/ui/QuickActionButton';
 import ClientCard from './components/ClientCard';
 import ClientDetailModal from './components/ClientDetailModal';
 import AddClientModal from './components/AddClientModal';
 import EmptyState from './components/EmptyState';
+import EditClientModal from './components/EditClientModal';
+import AddServiceModal from './components/AddServiceModal';
+import RecordPaymentClientModal from './components/RecordPaymentClientModal';
+import SendCommunicationModal from './components/SendCommunicationModal';
+import { dataStore } from '../../utils/dataStore';
 
 const ClientManagement = () => {
   const [clients, setClients] = useState([]);
@@ -21,6 +24,10 @@ const ClientManagement = () => {
     paymentStatus: '',
     dateRange: ''
   });
+  const [editModalClient, setEditModalClient] = useState(null);
+  const [addServiceClient, setAddServiceClient] = useState(null);
+  const [recordPaymentClient, setRecordPaymentClient] = useState(null);
+  const [communicationClient, setCommunicationClient] = useState(null);
 
   useEffect(() => {
     const mockClients = [
@@ -349,15 +356,15 @@ const ClientManagement = () => {
   };
 
   const handleEditClient = (client) => {
-    console.log('Edit client:', client);
+    setEditModalClient(client);
   };
 
   const handleAddService = (client) => {
-    console.log('Add service for client:', client);
+    setAddServiceClient(client);
   };
 
   const handleSendReminder = (client) => {
-    console.log('Send reminder to client:', client);
+    setCommunicationClient(client);
   };
 
   const handleSaveClient = (clientData) => {
@@ -395,6 +402,64 @@ const ClientManagement = () => {
     setClients((prev) => [newClient, ...prev]);
   };
 
+  const handleSaveEditClient = (updatedClient) => {
+    setClients((prev) => prev.map((client) => client.id === updatedClient.id ? updatedClient : client));
+    setEditModalClient(null);
+  };
+
+  const handleSaveAddService = (newEvent) => {
+    setClients((prev) => prev.map((client) => {
+      if (client.id === addServiceClient.id) {
+        return {
+          ...client,
+          events: [...(client.events || []), newEvent],
+          totalEvents: (client.events?.length || 0) + 1,
+          totalAmount: (client.totalAmount || 0) + newEvent.totalAmount
+        };
+      }
+      return client;
+    }));
+    setAddServiceClient(null);
+  };
+
+  const handleSaveRecordPayment = (payment) => {
+    setClients((prev) => prev.map((client) => {
+      if (client.id === recordPaymentClient.id) {
+        const newPaymentHistory = [...(client.paymentHistory || []), payment];
+        const totalPaid = newPaymentHistory.reduce((sum, p) => sum + p.amount, 0);
+        const totalAmount = client.totalAmount || 0;
+        
+        let newPaymentStatus = 'pending';
+        if (totalPaid >= totalAmount) {
+          newPaymentStatus = 'paid';
+        } else if (totalPaid > 0) {
+          newPaymentStatus = 'partial';
+        }
+        
+        return {
+          ...client,
+          paymentHistory: newPaymentHistory,
+          paymentStatus: newPaymentStatus
+        };
+      }
+      return client;
+    }));
+    setRecordPaymentClient(null);
+  };
+
+  const handleSaveCommunication = (communication) => {
+    setClients((prev) => prev.map((client) => {
+      if (client.id === communicationClient.id) {
+        return {
+          ...client,
+          communicationLog: [...(client.communicationLog || []), communication]
+        };
+      }
+      return client;
+    }));
+    setCommunicationClient(null);
+  };
+
   return (
     <>
       <Helmet>
@@ -402,7 +467,6 @@ const ClientManagement = () => {
         <meta name="description" content="Kelola database klien makeup artist dengan tracking layanan dan pembayaran lengkap" />
       </Helmet>
       <div className="min-h-screen bg-background">
-        <HorizontalNavigation />
 
         <main className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-6">
           <div className="mb-6">
@@ -479,7 +543,6 @@ const ClientManagement = () => {
           }
         </main>
 
-        <BottomNavigation />
 
         {isDetailModalOpen &&
         <ClientDetailModal
@@ -495,6 +558,38 @@ const ClientManagement = () => {
         <AddClientModal
           onClose={() => setIsAddModalOpen(false)}
           onSave={handleSaveClient} />
+
+        }
+
+        {editModalClient &&
+        <EditClientModal
+          client={editModalClient}
+          onClose={() => setEditModalClient(null)}
+          onSave={handleSaveEditClient} />
+
+        }
+
+        {addServiceClient &&
+        <AddServiceModal
+          client={addServiceClient}
+          onClose={() => setAddServiceClient(null)}
+          onSave={handleSaveAddService} />
+
+        }
+
+        {recordPaymentClient &&
+        <RecordPaymentClientModal
+          client={recordPaymentClient}
+          onClose={() => setRecordPaymentClient(null)}
+          onSave={handleSaveRecordPayment} />
+
+        }
+
+        {communicationClient &&
+        <SendCommunicationModal
+          client={communicationClient}
+          onClose={() => setCommunicationClient(null)}
+          onSave={handleSaveCommunication} />
 
         }
       </div>

@@ -10,6 +10,7 @@ const SidebarLayout = ({ children }) => {
   const navigationItems = [
     { path: '/dashboard', label: 'Dashboard', icon: 'LayoutDashboard' },
     { path: '/client-management', label: 'Klien', icon: 'Users' },
+    { path: '/project-management', label: 'Proyek', icon: 'Briefcase' },
     { path: '/calendar-scheduling', label: 'Kalender', icon: 'Calendar' },
     { path: '/financial-tracking', label: 'Keuangan', icon: 'TrendingUp' },
     { path: '/payment-tracking', label: 'Pembayaran', icon: 'CreditCard' },

@@ -1,4 +1,5 @@
 // Centralized localStorage data management utilities
+import { nanoid } from 'nanoid';
 
 export const dataStore = {
   // Generic get/set/update functions
@@ -28,7 +29,7 @@ export const dataStore = {
   
   addClient: (client) => {
     const clients = dataStore.getClients();
-    const newClient = { ...client, id: Date.now() };
+    const newClient = { ...client, id: nanoid() };
     clients.push(newClient);
     dataStore.setClients(clients);
     return newClient;
@@ -54,7 +55,7 @@ export const dataStore = {
 
   addBooking: (booking) => {
     const bookings = dataStore.getBookings();
-    const newBooking = { ...booking, id: Date.now() };
+    const newBooking = { ...booking, id: nanoid() };
     bookings.push(newBooking);
     dataStore.setBookings(bookings);
     return newBooking;
@@ -82,8 +83,8 @@ export const dataStore = {
     const projects = dataStore.getProjects();
     const newProject = {
       ...project,
-      id: Date.now(),
-      publicId: Math.random().toString(36).substr(2, 9),
+      id: nanoid(),
+      publicId: nanoid(10),
       createdAt: new Date().toISOString()
     };
     projects.push(newProject);
@@ -116,7 +117,7 @@ export const dataStore = {
 
   addPayment: (payment) => {
     const payments = dataStore.getPayments();
-    const newPayment = { ...payment, id: Date.now() };
+    const newPayment = { ...payment, id: nanoid() };
     payments.push(newPayment);
     dataStore.setPayments(payments);
     return newPayment;
@@ -127,7 +128,7 @@ export const dataStore = {
 
   addInvoice: (invoice) => {
     const invoices = dataStore.getInvoices();
-    const newInvoice = { ...invoice, id: Date.now() };
+    const newInvoice = { ...invoice, id: nanoid() };
     invoices.push(newInvoice);
     dataStore.setInvoices(invoices);
     return newInvoice;
@@ -139,7 +140,7 @@ export const dataStore = {
 
   addLead: (lead) => {
     const leads = dataStore.getLeads();
-    const newLead = { ...lead, id: Date.now() };
+    const newLead = { ...lead, id: nanoid() };
     leads.push(newLead);
     dataStore.setLeads(leads);
     return newLead;

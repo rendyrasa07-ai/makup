@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import SidebarLayout from "./components/ui/SidebarLayout";
 import Dashboard from "./pages/dashboard";
 import CalendarScheduling from "./pages/calendar-scheduling";
@@ -17,6 +17,16 @@ import PublicLeadForm from "./pages/leads/PublicLeadForm";
 import Booking from "./pages/booking";
 import Gallery from "./pages/gallery";
 import PublicGallery from "./pages/gallery/PublicGallery";
+import ProjectManagement from "./pages/project-management";
+
+// Layout wrapper component for protected routes
+const ProtectedLayout = () => {
+  return (
+    <SidebarLayout>
+      <Outlet />
+    </SidebarLayout>
+  );
+};
 
 function App() {
     return (
@@ -29,96 +39,24 @@ function App() {
                     <Route path="/public-lead-form" element={<PublicLeadForm />} />
                     <Route path="/gallery/public/:publicId" element={<PublicGallery />} />
 
-                    {/* Protected routes with sidebar */}
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    <Route
-                        path="/dashboard"
-                        element={
-                            <SidebarLayout>
-                                <Dashboard />
-                            </SidebarLayout>
-                        }
-                    />
-                    <Route
-                        path="/calendar-scheduling"
-                        element={
-                            <SidebarLayout>
-                                <CalendarScheduling />
-                            </SidebarLayout>
-                        }
-                    />
-                    <Route
-                        path="/client-management"
-                        element={
-                            <SidebarLayout>
-                                <ClientManagement />
-                            </SidebarLayout>
-                        }
-                    />
-                    <Route
-                        path="/financial-tracking"
-                        element={
-                            <SidebarLayout>
-                                <FinancialTracking />
-                            </SidebarLayout>
-                        }
-                    />
-                    <Route
-                        path="/leads"
-                        element={
-                            <SidebarLayout>
-                                <Leads />
-                            </SidebarLayout>
-                        }
-                    />
-                    <Route
-                        path="/payment-tracking"
-                        element={
-                            <SidebarLayout>
-                                <PaymentTracking />
-                            </SidebarLayout>
-                        }
-                    />
-                    <Route
-                        path="/profile"
-                        element={
-                            <SidebarLayout>
-                                <Profile />
-                            </SidebarLayout>
-                        }
-                    />
-                    <Route
-                        path="/service-packages"
-                        element={
-                            <SidebarLayout>
-                                <ServicePackages />
-                            </SidebarLayout>
-                        }
-                    />
-                    <Route
-                        path="/settings"
-                        element={
-                            <SidebarLayout>
-                                <Settings />
-                            </SidebarLayout>
-                        }
-                    />
-                    <Route
-                        path="/booking"
-                        element={
-                            <SidebarLayout>
-                                <Booking />
-                            </SidebarLayout>
-                        }
-                    />
-                    <Route
-                        path="/gallery"
-                        element={
-                            <SidebarLayout>
-                                <Gallery />
-                            </SidebarLayout>
-                        }
-                    />
+                    {/* Protected routes with sidebar - nested under ProtectedLayout */}
+                    <Route path="/" element={<ProtectedLayout />}>
+                        <Route index element={<Navigate to="/dashboard" replace />} />
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="calendar-scheduling" element={<CalendarScheduling />} />
+                        <Route path="client-management" element={<ClientManagement />} />
+                        <Route path="financial-tracking" element={<FinancialTracking />} />
+                        <Route path="leads" element={<Leads />} />
+                        <Route path="payment-tracking" element={<PaymentTracking />} />
+                        <Route path="profile" element={<Profile />} />
+                        <Route path="service-packages" element={<ServicePackages />} />
+                        <Route path="settings" element={<Settings />} />
+                        <Route path="booking" element={<Booking />} />
+                        <Route path="gallery" element={<Gallery />} />
+                        <Route path="project-management" element={<ProjectManagement />} />
+                    </Route>
+
+                    {/* 404 Not Found */}
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </div>

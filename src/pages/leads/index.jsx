@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import HorizontalNavigation from '../../components/ui/HorizontalNavigation';
-import BottomNavigation from '../../components/ui/BottomNavigation';
 import QuickActionButton from '../../components/ui/QuickActionButton';
 import Icon from '../../components/AppIcon';
 import LeadsForm from './LeadsForm';
@@ -80,7 +78,6 @@ const Leads = () => {
                 <title>Prospek - MUA Finance Manager</title>
             </Helmet>
             <div className="min-h-screen bg-background">
-                <HorizontalNavigation />
                 <main className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-6">
                     <div className="mb-6">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -198,7 +195,6 @@ const Leads = () => {
                         <WhatsAppTemplates />
                     )}
                 </main>
-                <BottomNavigation />
 
                 {/* Follow Up Modal */}
                 {showFollowUpModal && (

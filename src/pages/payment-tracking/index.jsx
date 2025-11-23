@@ -1,6 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import HorizontalNavigation from '../../components/ui/HorizontalNavigation';
-import BottomNavigation from '../../components/ui/BottomNavigation';
 import QuickActionButton from '../../components/ui/QuickActionButton';
 import ClientSearchFilter from '../../components/ui/ClientSearchFilter';
 import PaymentOverviewCard from './components/PaymentOverviewCard';
@@ -224,7 +222,6 @@ const PaymentTracking = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <HorizontalNavigation />
       <main className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-6">
         <div className="mb-6">
           <div className="flex items-start justify-between gap-4 mb-2">
@@ -365,7 +362,6 @@ const PaymentTracking = () => {
           </div>
         }
       </main>
-      <BottomNavigation />
       <div className="lg:hidden fixed bottom-20 right-4 z-50">
         <QuickActionButton
           label="Catat"

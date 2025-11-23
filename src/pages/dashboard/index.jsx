@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import HorizontalNavigation from '../../components/ui/HorizontalNavigation';
-import BottomNavigation from '../../components/ui/BottomNavigation';
 import QuickActionButton from '../../components/ui/QuickActionButton';
 import RevenueCard from './components/RevenueCard';
 import UpcomingScheduleCard from './components/UpcomingScheduleCard';
@@ -127,7 +125,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <HorizontalNavigation />
       <main className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-6">
         {/* Header Section */}
         <div className="mb-6">
@@ -317,7 +314,6 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
-      <BottomNavigation />
     </div>
   );
 };
