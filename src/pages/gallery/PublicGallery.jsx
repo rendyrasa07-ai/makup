@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import Icon from '../../components/AppIcon';
 import { dataStore } from '../../utils/dataStore';
 
@@ -107,7 +107,8 @@ const PublicGallery = () => {
                   alt={currentImage?.caption || `Image ${currentImageIndex + 1}`}
                   className="w-full h-full object-contain"
                   onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/800x600?text=Image+Error';
+                    e.target.onerror = null;
+                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600"%3E%3Crect width="800" height="600" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="24" fill="%23999"%3EImage Error%3C/text%3E%3C/svg%3E';
                   }}
                 />
 
@@ -156,7 +157,8 @@ const PublicGallery = () => {
                         alt={`Thumbnail ${index + 1}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/100?text=Error';
+                          e.target.onerror = null;
+                          e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect width="100" height="100" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12" fill="%23999"%3EError%3C/text%3E%3C/svg%3E';
                         }}
                       />
                     </button>

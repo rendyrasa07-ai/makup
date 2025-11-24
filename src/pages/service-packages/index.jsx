@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 import Select from '../../components/ui/Select';
@@ -322,6 +322,53 @@ const ServicePackages = () => {
             </div>
           </div>
 
+          {/* Public Link Info Banner */}
+          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10 border border-primary/20 rounded-2xl p-4 sm:p-6 mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                <Icon name="Share2" size={24} color="var(--color-primary)" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-heading font-semibold text-foreground mb-1">
+                  Bagikan Paket Layanan ke Klien
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Klien dapat melihat semua paket layanan dan langsung melakukan booking melalui link publik
+                </p>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={`${window.location.origin}/packages/public`}
+                      readOnly
+                      className="w-full px-3 py-2 pr-10 rounded-lg border border-input bg-background/50 text-foreground text-sm font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/packages/public`);
+                        alert('Link berhasil disalin!');
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-muted rounded-md transition-smooth"
+                      title="Salin link"
+                    >
+                      <Icon name="Copy" size={16} color="var(--color-primary)" />
+                    </button>
+                  </div>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    iconName="ExternalLink"
+                    iconPosition="left"
+                    onClick={() => window.open('/packages/public', '_blank')}
+                  >
+                    Preview
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Stats */}
           <PackageStats packages={packages} />
 
@@ -341,6 +388,18 @@ const ServicePackages = () => {
                 onClick={() => setShowTemplates(!showTemplates)}
               >
                 {showTemplates ? 'Sembunyikan Template' : 'Lihat Template'}
+              </Button>
+              <Button
+                variant="outline"
+                iconName="Link"
+                iconPosition="left"
+                onClick={() => {
+                  const publicLink = `${window.location.origin}/packages/public`;
+                  navigator.clipboard.writeText(publicLink);
+                  alert('Link paket publik berhasil disalin!\n\nBagikan link ini kepada klien agar mereka bisa melihat dan memilih paket layanan.');
+                }}
+              >
+                Copy Link Publik
               </Button>
             </div>
 

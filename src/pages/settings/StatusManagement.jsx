@@ -28,20 +28,26 @@ const StatusManagement = () => {
     };
 
     return (
-        <div className="bg-card border border-border rounded-lg p-6">
-            <h3 className="font-bold text-lg mb-4">Manajemen Status Prospek</h3>
+        <div className="bg-card border border-border rounded-2xl p-6">
+            <div className="flex items-center gap-2 mb-4">
+                <Icon name="ListChecks" size={20} color="var(--color-primary)" />
+                <h3 className="font-bold text-lg text-foreground">Manajemen Status Prospek</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+                Kelola status untuk tracking prospek dan leads
+            </p>
 
             <form onSubmit={handleAddStatus} className="flex gap-2 mb-4">
                 <input
                     type="text"
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
-                    className="flex-1 p-2 rounded border border-input bg-background"
+                    className="flex-1 px-4 py-2 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Tambah status baru..."
                 />
                 <button
                     type="submit"
-                    className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-smooth flex items-center justify-center"
                 >
                     <Icon name="Plus" size={20} />
                 </button>
@@ -49,11 +55,12 @@ const StatusManagement = () => {
 
             <div className="space-y-2">
                 {leadStatuses.map((status) => (
-                    <div key={status} className="flex items-center justify-between p-3 bg-muted/50 rounded border border-border">
-                        <span>{status}</span>
+                    <div key={status} className="flex items-center justify-between p-3 bg-muted/50 rounded-xl border border-border">
+                        <span className="text-foreground">{status}</span>
                         <button
                             onClick={() => handleDeleteStatus(status)}
-                            className="text-destructive hover:bg-destructive/10 p-1 rounded"
+                            className="text-destructive hover:bg-destructive/10 p-2 rounded-lg transition-smooth"
+                            aria-label="Hapus status"
                         >
                             <Icon name="Trash" size={16} />
                         </button>

@@ -71,18 +71,21 @@ const CategoryManagement = () => {
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
+    <div className="bg-card border border-border rounded-2xl p-6">
       <div className="flex items-center gap-2 mb-4">
         <Icon name="Tag" size={20} color="var(--color-primary)" />
-        <h3 className="font-bold text-lg">Kategori Pengeluaran</h3>
+        <h3 className="font-bold text-lg text-foreground">Kategori Pengeluaran</h3>
       </div>
+      <p className="text-sm text-muted-foreground mb-4">
+        Kelola kategori untuk pengeluaran bisnis Anda
+      </p>
 
       <form onSubmit={handleAddCategory} className="mb-4">
         <div className="flex gap-2">
           <select
             value={newCategory.icon}
             onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value })}
-            className="p-2 rounded border border-input bg-background"
+            className="px-3 py-2 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           >
             {iconOptions.map(icon => (
               <option key={icon} value={icon}>{icon}</option>
@@ -92,13 +95,13 @@ const CategoryManagement = () => {
             type="text"
             value={newCategory.name}
             onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-            className="flex-1 p-2 rounded border border-input bg-background"
+            className="flex-1 px-4 py-2 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Nama kategori baru..."
             required
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-smooth flex items-center justify-center"
           >
             <Icon name="Plus" size={20} />
           </button>
@@ -112,13 +115,13 @@ const CategoryManagement = () => {
           </p>
         ) : (
           categories.map((category) => (
-            <div key={category.id} className="flex items-center gap-2 p-3 bg-muted/50 rounded border border-border">
+            <div key={category.id} className="flex items-center gap-2 p-3 bg-muted/50 rounded-xl border border-border">
               {editingId === category.id ? (
                 <>
                   <select
                     value={editData.icon}
                     onChange={(e) => setEditData({ ...editData, icon: e.target.value })}
-                    className="p-2 rounded border border-input bg-background"
+                    className="px-3 py-2 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {iconOptions.map(icon => (
                       <option key={icon} value={icon}>{icon}</option>
@@ -128,35 +131,37 @@ const CategoryManagement = () => {
                     type="text"
                     value={editData.name}
                     onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                    className="flex-1 p-2 rounded border border-input bg-background"
+                    className="flex-1 px-3 py-2 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                   />
                   <button
                     onClick={() => handleEditSave(category.id)}
-                    className="p-2 text-success hover:bg-success/10 rounded"
+                    className="p-2 text-success hover:bg-success/10 rounded-lg transition-smooth"
                   >
                     <Icon name="Check" size={18} />
                   </button>
                   <button
                     onClick={handleEditCancel}
-                    className="p-2 text-muted-foreground hover:bg-muted rounded"
+                    className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-smooth"
                   >
                     <Icon name="X" size={18} />
                   </button>
                 </>
               ) : (
                 <>
-                  <Icon name={category.icon} size={18} />
-                  <span className="flex-1">{category.name}</span>
+                  <Icon name={category.icon} size={18} color="var(--color-foreground)" />
+                  <span className="flex-1 text-foreground">{category.name}</span>
                   <button
                     onClick={() => handleEditStart(category)}
-                    className="p-1 text-primary hover:bg-primary/10 rounded"
+                    className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-smooth"
+                    aria-label="Edit kategori"
                   >
                     <Icon name="Edit" size={16} />
                   </button>
                   <button
                     onClick={() => handleDeleteCategory(category.id)}
-                    className="p-1 text-destructive hover:bg-destructive/10 rounded"
+                    className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-smooth"
+                    aria-label="Hapus kategori"
                   >
                     <Icon name="Trash" size={16} />
                   </button>

@@ -7,7 +7,8 @@ const LeadsForm = ({ onSave, onCancel, initialData }) => {
         phone: '',
         source: 'Instagram',
         status: 'New',
-        notes: ''
+        notes: '',
+        followUpDate: ''
     });
 
     useEffect(() => {
@@ -99,10 +100,24 @@ const LeadsForm = ({ onSave, onCancel, initialData }) => {
                             <option value="New">Baru</option>
                             <option value="Contacted">Dihubungi</option>
                             <option value="Interested">Tertarik</option>
-                            <option value="Booked">Booked</option>
+                            <option value="Converted">Jadi Klien</option>
                             <option value="Lost">Lost</option>
                         </select>
                     </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-1">Tanggal Follow Up (Opsional)</label>
+                    <input
+                        type="date"
+                        name="followUpDate"
+                        value={formData.followUpDate}
+                        onChange={handleChange}
+                        className="w-full p-2 rounded border border-input bg-background"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                        Atur tanggal untuk mengingatkan follow up
+                    </p>
                 </div>
 
                 <div>

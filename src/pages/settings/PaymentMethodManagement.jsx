@@ -68,18 +68,21 @@ const PaymentMethodManagement = () => {
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
+    <div className="bg-card border border-border rounded-2xl p-6">
       <div className="flex items-center gap-2 mb-4">
         <Icon name="CreditCard" size={20} color="var(--color-primary)" />
-        <h3 className="font-bold text-lg">Metode Pembayaran</h3>
+        <h3 className="font-bold text-lg text-foreground">Metode Pembayaran</h3>
       </div>
+      <p className="text-sm text-muted-foreground mb-4">
+        Kelola metode pembayaran yang tersedia untuk klien
+      </p>
 
       <form onSubmit={handleAddMethod} className="mb-4">
         <div className="flex gap-2">
           <select
             value={newMethod.icon}
             onChange={(e) => setNewMethod({ ...newMethod, icon: e.target.value })}
-            className="p-2 rounded border border-input bg-background"
+            className="px-3 py-2 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           >
             {iconOptions.map(icon => (
               <option key={icon} value={icon}>{icon}</option>
@@ -89,13 +92,13 @@ const PaymentMethodManagement = () => {
             type="text"
             value={newMethod.name}
             onChange={(e) => setNewMethod({ ...newMethod, name: e.target.value })}
-            className="flex-1 p-2 rounded border border-input bg-background"
+            className="flex-1 px-4 py-2 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Metode pembayaran baru..."
             required
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-smooth flex items-center justify-center"
           >
             <Icon name="Plus" size={20} />
           </button>
@@ -109,7 +112,7 @@ const PaymentMethodManagement = () => {
           </p>
         ) : (
           paymentMethods.map((method) => (
-            <div key={method.id} className="flex items-center gap-2 p-3 bg-muted/50 rounded border border-border">
+            <div key={method.id} className="flex items-center gap-2 p-3 bg-muted/50 rounded-xl border border-border">
               {editingId === method.id ? (
                 <>
                   <select

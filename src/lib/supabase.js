@@ -23,7 +23,13 @@ export const supabase = useMockData ? mockClient : createClient(supabaseUrl, sup
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: false,
+    flowType: 'pkce'
+  },
+  global: {
+    headers: {
+      'x-client-info': 'supabase-js-web'
+    }
   }
 });
 

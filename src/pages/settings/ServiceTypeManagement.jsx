@@ -68,18 +68,21 @@ const ServiceTypeManagement = () => {
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
+    <div className="bg-card border border-border rounded-2xl p-6">
       <div className="flex items-center gap-2 mb-4">
         <Icon name="Briefcase" size={20} color="var(--color-primary)" />
-        <h3 className="font-bold text-lg">Jenis Layanan</h3>
+        <h3 className="font-bold text-lg text-foreground">Jenis Layanan</h3>
       </div>
+      <p className="text-sm text-muted-foreground mb-4">
+        Kelola jenis layanan makeup yang Anda tawarkan
+      </p>
 
       <form onSubmit={handleAddServiceType} className="mb-4">
         <div className="flex gap-2">
           <select
             value={newServiceType.icon}
             onChange={(e) => setNewServiceType({ ...newServiceType, icon: e.target.value })}
-            className="p-2 rounded border border-input bg-background"
+            className="px-3 py-2 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           >
             {iconOptions.map(icon => (
               <option key={icon} value={icon}>{icon}</option>
@@ -89,13 +92,13 @@ const ServiceTypeManagement = () => {
             type="text"
             value={newServiceType.name}
             onChange={(e) => setNewServiceType({ ...newServiceType, name: e.target.value })}
-            className="flex-1 p-2 rounded border border-input bg-background"
+            className="flex-1 px-4 py-2 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Jenis layanan baru..."
             required
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-smooth flex items-center justify-center"
           >
             <Icon name="Plus" size={20} />
           </button>
@@ -109,7 +112,7 @@ const ServiceTypeManagement = () => {
           </p>
         ) : (
           serviceTypes.map((serviceType) => (
-            <div key={serviceType.id} className="flex items-center gap-2 p-3 bg-muted/50 rounded border border-border">
+            <div key={serviceType.id} className="flex items-center gap-2 p-3 bg-muted/50 rounded-xl border border-border">
               {editingId === serviceType.id ? (
                 <>
                   <select

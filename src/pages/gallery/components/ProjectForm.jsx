@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
+import MultipleImageUpload from '../../../components/ui/MultipleImageUpload';
+import { compressImageArray } from '../../../utils/imageCompression';
 
 const ProjectForm = ({ project, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -13,12 +15,26 @@ const ProjectForm = ({ project, onClose, onSave }) => {
     images: project?.images || [],
     isPublic: project?.isPublic ?? true
   });
+  const [isCompressing, setIsCompressing] = useState(false);
 
-  const [imageUrl, setImageUrl] = useState('');
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Compress images before saving
+    if (formData.images && formData.images.length > 0) {
+      setIsCompressing(true);
+      try {
+        const compressedImages = await compressImageArray(formData.images, 1200, 0.7);
+        onSave({ ...formData, images: compressedImages });
+      } catch (error) {
+        console.error('Error compressing images:', error);
+        alert('Gagal mengkompresi gambar. Coba dengan gambar yang lebih kecil.');
+      } finally {
+        setIsCompressing(false);
+      }
+    } else {
+      onSave(formData);
+    }
   };
 
   const handleChange = (e) => {
@@ -29,27 +45,11 @@ const ProjectForm = ({ project, onClose, onSave }) => {
     });
   };
 
-  const handleAddImage = () => {
-    if (imageUrl.trim()) {
-      setFormData({
-        ...formData,
-        images: [...formData.images, { url: imageUrl, caption: '' }]
-      });
-      setImageUrl('');
-    }
-  };
-
-  const handleRemoveImage = (index) => {
+  const handleImagesChange = (images) => {
     setFormData({
       ...formData,
-      images: formData.images.filter((_, i) => i !== index)
+      images: images
     });
-  };
-
-  const handleImageCaptionChange = (index, caption) => {
-    const newImages = [...formData.images];
-    newImages[index].caption = caption;
-    setFormData({ ...formData, images: newImages });
   };
 
   return (
@@ -159,58 +159,12 @@ const ProjectForm = ({ project, onClose, onSave }) => {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Gambar
-            </label>
-            <div className="flex gap-2 mb-3">
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="flex-1 px-4 py-3 bg-surface border border-input rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Masukkan URL gambar"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleAddImage}
-              >
-                <Icon name="Plus" size={18} />
-              </Button>
-            </div>
-
-            {formData.images.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {formData.images.map((image, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={image.url}
-                      alt={`Gallery ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                      onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/300x200?text=Image+Error';
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(index)}
-                      className="absolute top-2 right-2 p-1 bg-error text-white rounded-full opacity-0 group-hover:opacity-100 transition-smooth"
-                    >
-                      <Icon name="X" size={14} />
-                    </button>
-                    <input
-                      type="text"
-                      value={image.caption}
-                      onChange={(e) => handleImageCaptionChange(index, e.target.value)}
-                      placeholder="Caption (opsional)"
-                      className="mt-2 w-full px-2 py-1 text-xs bg-surface border border-input rounded text-foreground"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <MultipleImageUpload
+            images={formData.images}
+            onChange={handleImagesChange}
+            maxImages={20}
+            maxSize={5}
+          />
 
           <div className="flex items-center gap-2">
             <input
@@ -227,11 +181,11 @@ const ProjectForm = ({ project, onClose, onSave }) => {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" className="flex-1" onClick={onClose}>
+            <Button type="button" variant="outline" className="flex-1" onClick={onClose} disabled={isCompressing}>
               Batal
             </Button>
-            <Button type="submit" variant="primary" className="flex-1">
-              Simpan Project
+            <Button type="submit" variant="primary" className="flex-1" disabled={isCompressing}>
+              {isCompressing ? 'Mengkompresi gambar...' : 'Simpan Project'}
             </Button>
           </div>
         </form>

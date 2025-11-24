@@ -10,14 +10,18 @@ const SidebarLayout = ({ children }) => {
   const navigationItems = [
     { path: '/dashboard', label: 'Dashboard', icon: 'LayoutDashboard' },
     { path: '/client-management', label: 'Klien', icon: 'Users' },
+    { path: '/client-kpi', label: 'KPI Klien', icon: 'BarChart3' },
     { path: '/project-management', label: 'Proyek', icon: 'Briefcase' },
     { path: '/calendar-scheduling', label: 'Kalender', icon: 'Calendar' },
     { path: '/financial-tracking', label: 'Keuangan', icon: 'TrendingUp' },
     { path: '/payment-tracking', label: 'Pembayaran', icon: 'CreditCard' },
     { path: '/service-packages', label: 'Paket Layanan', icon: 'Package' },
+    { path: '/pricelist', label: 'Pricelist', icon: 'DollarSign' },
+    { path: '/promotions', label: 'Promo', icon: 'Tag' },
     { path: '/leads', label: 'Prospek', icon: 'UserPlus' },
     { path: '/booking', label: 'Booking', icon: 'CalendarCheck' },
     { path: '/gallery', label: 'Gallery', icon: 'Image' },
+    { path: '/team', label: 'Tim', icon: 'Users' },
     { path: '/settings', label: 'Pengaturan', icon: 'Settings' },
     { path: '/profile', label: 'Profil', icon: 'User' }
   ];

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Icon from '../../components/AppIcon';
 import QuickActionButton from '../../components/ui/QuickActionButton';
 import FinancialSummaryCards from './components/FinancialSummaryCards';
@@ -9,6 +9,10 @@ import IncomeList from './components/IncomeList';
 import ExpenseList from './components/ExpenseList';
 import FinancialReportView from './components/FinancialReportView';
 import FilterBar from './components/FilterBar';
+import FinancialFilterCards from './components/FinancialFilterCards';
+import FinancialReportPage from './components/FinancialReportPage';
+import { exportIncomeCSV, exportExpenseCSV } from '../../utils/financialExport';
+import { dataStore } from '../../utils/dataStore';
 
 const FinancialTracking = () => {
   const [activeTab, setActiveTab] = useState('income');
@@ -24,38 +28,63 @@ const FinancialTracking = () => {
     maxAmount: ''
   });
 
-  const [incomes, setIncomes] = useState([
-    {
-      id: 1,
-      clientName: "Siti Nurhaliza",
-      serviceType: "akad",
-      paymentType: "dp",
-      amount: 1500000,
-      paymentMethod: "transfer",
-      transactionDate: "2025-11-15",
-      notes: "DP 50% untuk acara akad nikah tanggal 25 November 2025"
-    },
-    {
-      id: 2,
-      clientName: "Dewi Lestari",
-      serviceType: "resepsi",
-      paymentType: "full",
-      amount: 3500000,
-      paymentMethod: "transfer",
-      transactionDate: "2025-11-18",
-      notes: "Pelunasan paket resepsi premium dengan 2 asisten"
-    },
-    {
-      id: 3,
-      clientName: "Rina Kusuma",
-      serviceType: "wisuda",
-      paymentType: "cash",
-      amount: 800000,
-      paymentMethod: "cash",
-      transactionDate: "2025-11-20",
-      notes: "Pembayaran tunai untuk makeup wisuda di kampus"
+  // Load incomes from invoices
+  const loadIncomesFromInvoices = () => {
+    const invoices = dataStore.getInvoices() || [];
+    return invoices
+      .filter(inv => inv.status === 'paid')
+      .map(inv => ({
+        id: inv.id,
+        clientName: inv.client || 'Klien',
+        serviceType: inv.items?.[0]?.serviceType || 'other',
+        paymentType: 'full',
+        amount: inv.grandTotal || 0,
+        paymentMethod: inv.paymentMethod || 'transfer',
+        transactionDate: inv.date,
+        notes: inv.notes || '',
+        invoiceNumber: inv.invoiceNumber
+      }));
+  };
+
+  const [incomes, setIncomes] = useState(() => {
+    const invoiceIncomes = loadIncomesFromInvoices();
+    // Jika tidak ada data dari invoice, gunakan mock data
+    if (invoiceIncomes.length === 0) {
+      return [
+        {
+          id: 1,
+          clientName: "Siti Nurhaliza",
+          serviceType: "akad",
+          paymentType: "dp",
+          amount: 1500000,
+          paymentMethod: "transfer",
+          transactionDate: "2025-11-15",
+          notes: "DP 50% untuk acara akad nikah tanggal 25 November 2025"
+        },
+        {
+          id: 2,
+          clientName: "Dewi Lestari",
+          serviceType: "resepsi",
+          paymentType: "full",
+          amount: 3500000,
+          paymentMethod: "transfer",
+          transactionDate: "2025-11-18",
+          notes: "Pelunasan paket resepsi premium dengan 2 asisten"
+        },
+        {
+          id: 3,
+          clientName: "Rina Kusuma",
+          serviceType: "wisuda",
+          paymentType: "cash",
+          amount: 800000,
+          paymentMethod: "cash",
+          transactionDate: "2025-11-20",
+          notes: "Pembayaran tunai untuk makeup wisuda di kampus"
+        }
+      ];
     }
-  ]);
+    return invoiceIncomes;
+  });
 
   const [expenses, setExpenses] = useState([
     {
@@ -163,8 +192,98 @@ const FinancialTracking = () => {
   };
 
   const handleExportReport = () => {
-    alert('Fitur ekspor laporan akan segera tersedia. Laporan akan diekspor dalam format PDF atau Excel.');
+    if (activeTab === 'income') {
+      exportIncomeCSV(filteredIncomes);
+      alert('Data pemasukan berhasil diekspor ke CSV!');
+    } else if (activeTab === 'expense') {
+      exportExpenseCSV(filteredExpenses);
+      alert('Data pengeluaran berhasil diekspor ke CSV!');
+    } else {
+      alert('Silakan gunakan tombol download di halaman laporan untuk ekspor data lengkap.');
+    }
   };
+
+  // Apply filters to data
+  const filteredIncomes = useMemo(() => {
+    let filtered = [...incomes];
+
+    if (filters.dateFrom) {
+      filtered = filtered.filter(item => 
+        new Date(item.transactionDate) >= new Date(filters.dateFrom)
+      );
+    }
+
+    if (filters.dateTo) {
+      filtered = filtered.filter(item => 
+        new Date(item.transactionDate) <= new Date(filters.dateTo)
+      );
+    }
+
+    if (filters.serviceType) {
+      filtered = filtered.filter(item => item.serviceType === filters.serviceType);
+    }
+
+    if (filters.paymentMethod) {
+      filtered = filtered.filter(item => item.paymentMethod === filters.paymentMethod);
+    }
+
+    if (filters.minAmount) {
+      filtered = filtered.filter(item => item.amount >= parseFloat(filters.minAmount));
+    }
+
+    if (filters.maxAmount) {
+      filtered = filtered.filter(item => item.amount <= parseFloat(filters.maxAmount));
+    }
+
+    return filtered;
+  }, [incomes, filters]);
+
+  const filteredExpenses = useMemo(() => {
+    let filtered = [...expenses];
+
+    if (filters.dateFrom) {
+      filtered = filtered.filter(item => 
+        new Date(item.transactionDate) >= new Date(filters.dateFrom)
+      );
+    }
+
+    if (filters.dateTo) {
+      filtered = filtered.filter(item => 
+        new Date(item.transactionDate) <= new Date(filters.dateTo)
+      );
+    }
+
+    if (filters.category) {
+      filtered = filtered.filter(item => item.category === filters.category);
+    }
+
+    if (filters.paymentMethod) {
+      filtered = filtered.filter(item => item.paymentMethod === filters.paymentMethod);
+    }
+
+    if (filters.minAmount) {
+      filtered = filtered.filter(item => item.amount >= parseFloat(filters.minAmount));
+    }
+
+    if (filters.maxAmount) {
+      filtered = filtered.filter(item => item.amount <= parseFloat(filters.maxAmount));
+    }
+
+    return filtered;
+  }, [expenses, filters]);
+
+  // Listen for payment updates
+  useEffect(() => {
+    const handlePaymentUpdate = () => {
+      const invoiceIncomes = loadIncomesFromInvoices();
+      if (invoiceIncomes.length > 0) {
+        setIncomes(invoiceIncomes);
+      }
+    };
+    
+    window.addEventListener('paymentRecorded', handlePaymentUpdate);
+    return () => window.removeEventListener('paymentRecorded', handlePaymentUpdate);
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -227,9 +346,9 @@ const FinancialTracking = () => {
           />
         </div>
 
-        {/* Filter Bar */}
-        <FilterBar
-          onFilterChange={setFilters}
+        {/* Financial Filter Cards */}
+        <FinancialFilterCards
+          onFilterApply={setFilters}
           activeFilters={filters}
         />
 
@@ -312,8 +431,13 @@ const FinancialTracking = () => {
                   />
                 </div>
               )}
+              <div className="mb-4 p-3 rounded-lg bg-muted/50 border border-border">
+                <p className="text-sm text-muted-foreground">
+                  Menampilkan <span className="font-semibold text-foreground">{filteredIncomes.length}</span> dari {incomes.length} data pemasukan
+                </p>
+              </div>
               <IncomeList
-                incomes={incomes}
+                incomes={filteredIncomes}
                 onEdit={(income) => console.log('Edit income:', income)}
                 onDelete={handleDeleteIncome}
               />
@@ -342,8 +466,13 @@ const FinancialTracking = () => {
                   />
                 </div>
               )}
+              <div className="mb-4 p-3 rounded-lg bg-muted/50 border border-border">
+                <p className="text-sm text-muted-foreground">
+                  Menampilkan <span className="font-semibold text-foreground">{filteredExpenses.length}</span> dari {expenses.length} data pengeluaran
+                </p>
+              </div>
               <ExpenseList
-                expenses={expenses}
+                expenses={filteredExpenses}
                 onEdit={(expense) => console.log('Edit expense:', expense)}
                 onDelete={handleDeleteExpense}
               />
@@ -351,7 +480,10 @@ const FinancialTracking = () => {
           )}
 
           {activeTab === 'report' && (
-            <FinancialReportView reportData={reportData} />
+            <FinancialReportPage 
+              incomes={incomes}
+              expenses={expenses}
+            />
           )}
         </div>
       </main>

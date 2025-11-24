@@ -3,6 +3,7 @@ import Icon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Button from '../../../components/ui/Button';
+import { dataStore } from '../../../utils/dataStore';
 
 const RecordPaymentModal = ({ client, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -10,7 +11,8 @@ const RecordPaymentModal = ({ client, onClose, onSubmit }) => {
     method: '',
     reference: '',
     date: new Date()?.toISOString()?.split('T')?.[0],
-    notes: ''
+    notes: '',
+    serviceDescription: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -65,11 +67,101 @@ const RecordPaymentModal = ({ client, onClose, onSubmit }) => {
   const handleSubmit = (e) => {
     e?.preventDefault();
     if (validateForm()) {
-      onSubmit({
+      const paymentData = {
         ...formData,
         clientId: client?.id,
         amount: parseFloat(formData?.amount)
-      });
+      };
+
+      // Otomatis buat invoice
+      const profile = JSON.parse(localStorage.getItem('user_profile') || '{}');
+      const invoiceNumber = `INV-${Date.now()}`;
+      
+      const invoice = {
+        invoiceNumber,
+        date: formData?.date,
+        dueDate: formData?.date,
+        client: client?.name,
+        clientId: client?.id,
+        items: [{
+          description: formData?.serviceDescription || 'Layanan Makeup',
+          quantity: 1,
+          amount: parseFloat(formData?.amount)
+        }],
+        subtotal: parseFloat(formData?.amount),
+        tax: 0,
+        discount: 0,
+        grandTotal: parseFloat(formData?.amount),
+        notes: formData?.notes,
+        status: 'paid',
+        paymentMethod: formData?.method,
+        paymentReference: formData?.reference,
+        // Tambahkan logo dan tanda tangan dari profil
+        logoUrl: profile?.logoUrl || '',
+        signatureUrl: profile?.signatureUrl || '',
+        // Tambahkan info bisnis
+        businessName: profile?.name || '',
+        businessContact: profile?.contact || '',
+        businessEmail: profile?.email || '',
+        businessAddress: profile?.address || '',
+        bankName: profile?.bankName || '',
+        bankAccount: profile?.bankAccount || '',
+        bankAccountName: profile?.bankAccountName || ''
+      };
+
+      // Simpan invoice
+      dataStore.addInvoice(invoice);
+
+      // Update data klien jika ada clientId
+      if (client?.id) {
+        const clients = dataStore.getClients();
+        const existingClient = clients.find(c => c.id === client.id);
+        
+        if (existingClient) {
+          // Update payment history
+          const newPayment = {
+            date: formData?.date,
+            amount: parseFloat(formData?.amount),
+            description: formData?.serviceDescription || 'Pembayaran',
+            method: formData?.method,
+            reference: formData?.reference
+          };
+          
+          const updatedPaymentHistory = [
+            ...(existingClient.paymentHistory || []),
+            newPayment
+          ];
+          
+          // Hitung total yang sudah dibayar
+          const totalPaid = updatedPaymentHistory.reduce((sum, p) => sum + p.amount, 0);
+          const totalAmount = existingClient.totalAmount || 0;
+          
+          // Update status pembayaran
+          let newPaymentStatus = 'pending';
+          if (totalPaid >= totalAmount) {
+            newPaymentStatus = 'paid';
+          } else if (totalPaid > 0) {
+            newPaymentStatus = 'partial';
+          }
+          
+          // Update klien
+          dataStore.updateClient(client.id, {
+            paymentHistory: updatedPaymentHistory,
+            paymentStatus: newPaymentStatus
+          });
+        }
+      }
+
+      // Trigger event untuk update real-time di halaman lain
+      window.dispatchEvent(new CustomEvent('paymentRecorded', { 
+        detail: { 
+          clientId: client?.id, 
+          amount: parseFloat(formData?.amount),
+          invoiceId: invoice.invoiceNumber 
+        } 
+      }));
+
+      onSubmit(paymentData);
     }
   };
 
@@ -122,6 +214,15 @@ const RecordPaymentModal = ({ client, onClose, onSubmit }) => {
               </span>
             </div>
           </div>
+
+          <Input
+            label="Deskripsi Layanan"
+            type="text"
+            placeholder="Contoh: Makeup Akad Nikah"
+            value={formData?.serviceDescription}
+            onChange={(e) => handleInputChange('serviceDescription', e?.target?.value)}
+            description="Layanan yang diberikan untuk invoice"
+          />
 
           <Input
             label="Jumlah Pembayaran"

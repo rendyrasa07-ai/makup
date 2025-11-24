@@ -10,6 +10,7 @@ import EditClientModal from './components/EditClientModal';
 import AddServiceModal from './components/AddServiceModal';
 import RecordPaymentClientModal from './components/RecordPaymentClientModal';
 import SendCommunicationModal from './components/SendCommunicationModal';
+import ShareLinkModal from './components/ShareLinkModal';
 import { dataStore } from '../../utils/dataStore';
 
 const ClientManagement = () => {
@@ -28,8 +29,19 @@ const ClientManagement = () => {
   const [addServiceClient, setAddServiceClient] = useState(null);
   const [recordPaymentClient, setRecordPaymentClient] = useState(null);
   const [communicationClient, setCommunicationClient] = useState(null);
+  const [shareLinkClient, setShareLinkClient] = useState(null);
 
   useEffect(() => {
+    // Load klien dari localStorage
+    const savedClients = dataStore.getClients();
+    
+    if (savedClients.length > 0) {
+      setClients(savedClients);
+      setFilteredClients(savedClients);
+      return;
+    }
+    
+    // Fallback ke mock data jika belum ada data
     const mockClients = [
     {
       id: 1,
@@ -291,9 +303,16 @@ const ClientManagement = () => {
 
     }];
 
-
-    setClients(mockClients);
-    setFilteredClients(mockClients);
+    // Simpan mock data ke localStorage jika belum ada
+    const clientsWithPortalId = mockClients.map(client => ({
+      ...client,
+      portalId: client.portalId || `demo-${client.id}` // Generate demo portalId
+    }));
+    
+    dataStore.setClients(clientsWithPortalId);
+    
+    setClients(clientsWithPortalId);
+    setFilteredClients(clientsWithPortalId);
   }, []);
 
   useEffect(() => {
@@ -368,13 +387,13 @@ const ClientManagement = () => {
   };
 
   const handleSaveClient = (clientData) => {
-    const newClient = {
-      id: clients?.length + 1,
+    const clientToSave = {
       ...clientData,
       profileImage: "https://img.rocket.new/generatedImages/rocket_gen_img_16febe95c-1763295744648.png",
       profileImageAlt: "Professional headshot of Indonesian woman with elegant makeup and modern hijab",
       isActive: true,
       totalEvents: 1,
+      totalAmount: parseFloat(clientData?.totalAmount),
       paymentStatus: clientData?.downPayment ? 'partial' : 'pending',
       events: [
       {
@@ -387,7 +406,6 @@ const ClientManagement = () => {
         paymentStatus: clientData?.downPayment ? 'partial' : 'pending',
         notes: clientData?.notes
       }],
-
       paymentHistory: clientData?.downPayment ? [
       {
         date: new Date()?.toISOString()?.split('T')?.[0],
@@ -399,51 +417,72 @@ const ClientManagement = () => {
       communicationLog: []
     };
 
+    // Simpan ke dataStore (otomatis generate portalId)
+    const newClient = dataStore.addClient(clientToSave);
+    
+    // Update state lokal
     setClients((prev) => [newClient, ...prev]);
+    
+    // Tampilkan notifikasi dengan link portal
+    const portalLink = `${window.location.origin}/portal-klien/${newClient.portalId}`;
+    console.log('✅ Portal klien berhasil dibuat:', portalLink);
+    
+    // Optional: Show alert with portal link
+    alert(`Klien berhasil ditambahkan!\n\nLink Portal Klien:\n${portalLink}\n\nSalin link ini untuk dibagikan ke klien.`);
   };
 
   const handleSaveEditClient = (updatedClient) => {
+    // Update di dataStore
+    dataStore.updateClient(updatedClient.id, updatedClient);
+    
+    // Update state lokal
     setClients((prev) => prev.map((client) => client.id === updatedClient.id ? updatedClient : client));
     setEditModalClient(null);
   };
 
   const handleSaveAddService = (newEvent) => {
-    setClients((prev) => prev.map((client) => {
-      if (client.id === addServiceClient.id) {
-        return {
-          ...client,
-          events: [...(client.events || []), newEvent],
-          totalEvents: (client.events?.length || 0) + 1,
-          totalAmount: (client.totalAmount || 0) + newEvent.totalAmount
-        };
-      }
-      return client;
-    }));
+    const updatedClient = {
+      ...addServiceClient,
+      events: [...(addServiceClient.events || []), newEvent],
+      totalEvents: (addServiceClient.events?.length || 0) + 1,
+      totalAmount: (addServiceClient.totalAmount || 0) + newEvent.totalAmount
+    };
+    
+    // Update di dataStore
+    dataStore.updateClient(addServiceClient.id, updatedClient);
+    
+    // Update state lokal
+    setClients((prev) => prev.map((client) => 
+      client.id === addServiceClient.id ? updatedClient : client
+    ));
     setAddServiceClient(null);
   };
 
   const handleSaveRecordPayment = (payment) => {
-    setClients((prev) => prev.map((client) => {
-      if (client.id === recordPaymentClient.id) {
-        const newPaymentHistory = [...(client.paymentHistory || []), payment];
-        const totalPaid = newPaymentHistory.reduce((sum, p) => sum + p.amount, 0);
-        const totalAmount = client.totalAmount || 0;
-        
-        let newPaymentStatus = 'pending';
-        if (totalPaid >= totalAmount) {
-          newPaymentStatus = 'paid';
-        } else if (totalPaid > 0) {
-          newPaymentStatus = 'partial';
-        }
-        
-        return {
-          ...client,
-          paymentHistory: newPaymentHistory,
-          paymentStatus: newPaymentStatus
-        };
-      }
-      return client;
-    }));
+    const newPaymentHistory = [...(recordPaymentClient.paymentHistory || []), payment];
+    const totalPaid = newPaymentHistory.reduce((sum, p) => sum + p.amount, 0);
+    const totalAmount = recordPaymentClient.totalAmount || 0;
+    
+    let newPaymentStatus = 'pending';
+    if (totalPaid >= totalAmount) {
+      newPaymentStatus = 'paid';
+    } else if (totalPaid > 0) {
+      newPaymentStatus = 'partial';
+    }
+    
+    const updatedClient = {
+      ...recordPaymentClient,
+      paymentHistory: newPaymentHistory,
+      paymentStatus: newPaymentStatus
+    };
+    
+    // Update di dataStore
+    dataStore.updateClient(recordPaymentClient.id, updatedClient);
+    
+    // Update state lokal
+    setClients((prev) => prev.map((client) => 
+      client.id === recordPaymentClient.id ? updatedClient : client
+    ));
     setRecordPaymentClient(null);
   };
 
@@ -458,6 +497,25 @@ const ClientManagement = () => {
       return client;
     }));
     setCommunicationClient(null);
+  };
+
+  const handleDeleteClient = (clientId) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus klien ini? Data tidak dapat dikembalikan.')) {
+      // Hapus dari dataStore
+      dataStore.deleteClient(clientId);
+      
+      // Update state lokal
+      setClients((prev) => prev.filter((client) => client.id !== clientId));
+    }
+  };
+
+  const handleViewInvoices = (client) => {
+    // TODO: Implementasi lihat invoice
+    console.log('View invoices for client:', client.name);
+  };
+
+  const handleShareLink = (client) => {
+    setShareLinkClient(client);
   };
 
   return (
@@ -536,6 +594,9 @@ const ClientManagement = () => {
               onEdit={handleEditClient}
               onAddService={handleAddService}
               onSendReminder={handleSendReminder}
+              onViewInvoices={handleViewInvoices}
+              onShareLink={handleShareLink}
+              onDelete={handleDeleteClient}
               onClick={() => handleClientClick(client)} />
 
             )}
@@ -590,6 +651,13 @@ const ClientManagement = () => {
           client={communicationClient}
           onClose={() => setCommunicationClient(null)}
           onSave={handleSaveCommunication} />
+
+        }
+
+        {shareLinkClient &&
+        <ShareLinkModal
+          client={shareLinkClient}
+          onClose={() => setShareLinkClient(null)} />
 
         }
       </div>

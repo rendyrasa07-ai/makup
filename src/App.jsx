@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import SidebarLayout from "./components/ui/SidebarLayout";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { runAllMigrations } from "./utils/migrateImageData";
+import "./utils/resetData"; // Import untuk expose ke window
 import Dashboard from "./pages/dashboard";
 import CalendarScheduling from "./pages/calendar-scheduling";
 import ClientManagement from "./pages/client-management";
@@ -15,9 +18,18 @@ import Settings from "./pages/settings";
 import Profile from "./pages/profile";
 import PublicLeadForm from "./pages/leads/PublicLeadForm";
 import Booking from "./pages/booking";
+import PublicBookingForm from "./pages/booking/PublicBookingForm";
 import Gallery from "./pages/gallery";
 import PublicGallery from "./pages/gallery/PublicGallery";
+import Pricelist from "./pages/pricelist";
+import PublicPricelist from "./pages/pricelist/PublicPricelist";
 import ProjectManagement from "./pages/project-management";
+import PublicPackages from "./pages/service-packages/PublicPackages";
+import Team from "./pages/team";
+import Promotions from "./pages/promotions";
+import ClientKPI from "./pages/client-kpi";
+import PublicClient from "./pages/public-client";
+import ClientPortal from "./pages/client-management/ClientPortal";
 
 // Layout wrapper component for protected routes
 const ProtectedLayout = () => {
@@ -29,15 +41,26 @@ const ProtectedLayout = () => {
 };
 
 function App() {
+    // Run data migrations on app load
+    useEffect(() => {
+        runAllMigrations();
+    }, []);
+
     return (
-        <Router>
-            <div className="min-h-screen bg-background text-foreground font-sans">
-                <Routes>
+        <ErrorBoundary>
+            <Router>
+                <div className="min-h-screen bg-background text-foreground font-sans">
+                    <Routes>
                     {/* Public routes without sidebar */}
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/public-lead-form" element={<PublicLeadForm />} />
+                    <Route path="/booking/public" element={<PublicBookingForm />} />
+                    <Route path="/packages/public" element={<PublicPackages />} />
                     <Route path="/gallery/public/:publicId" element={<PublicGallery />} />
+                    <Route path="/pricelist/public/:publicId" element={<PublicPricelist />} />
+                    <Route path="/client/public/:publicId" element={<PublicClient />} />
+                    <Route path="/portal-klien/:clientId" element={<ClientPortal />} />
 
                     {/* Protected routes with sidebar - nested under ProtectedLayout */}
                     <Route path="/" element={<ProtectedLayout />}>
@@ -53,7 +76,11 @@ function App() {
                         <Route path="settings" element={<Settings />} />
                         <Route path="booking" element={<Booking />} />
                         <Route path="gallery" element={<Gallery />} />
+                        <Route path="pricelist" element={<Pricelist />} />
                         <Route path="project-management" element={<ProjectManagement />} />
+                        <Route path="team" element={<Team />} />
+                        <Route path="promotions" element={<Promotions />} />
+                        <Route path="client-kpi" element={<ClientKPI />} />
                     </Route>
 
                     {/* 404 Not Found */}
@@ -61,6 +88,7 @@ function App() {
                 </Routes>
             </div>
         </Router>
+        </ErrorBoundary>
     );
 }
 

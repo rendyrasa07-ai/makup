@@ -23,7 +23,21 @@ const ProjectCard = ({ project, onEdit, onDelete, onCopyLink, onViewDetail }) =>
     return colors[category] || colors.other;
   };
 
-  const coverImage = project.images?.[0]?.url || 'https://via.placeholder.com/400x300?text=No+Image';
+  // Placeholder SVG untuk gambar yang tidak ada
+  const placeholderImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="18" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E';
+
+  // Safe image access
+  const getCoverImage = () => {
+    if (!project.images || !Array.isArray(project.images) || project.images.length === 0) {
+      return placeholderImage;
+    }
+    const firstImage = project.images[0];
+    if (typeof firstImage === 'string') return firstImage;
+    if (firstImage && typeof firstImage === 'object' && firstImage.url) return firstImage.url;
+    return placeholderImage;
+  };
+
+  const coverImage = getCoverImage();
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden elevation-1 hover:elevation-3 transition-smooth">
@@ -36,7 +50,8 @@ const ProjectCard = ({ project, onEdit, onDelete, onCopyLink, onViewDetail }) =>
           alt={project.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
-            e.target.src = 'https://via.placeholder.com/400x300?text=Image+Error';
+            e.target.onerror = null; // Prevent infinite loop
+            e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="18" fill="%23999"%3EImage Error%3C/text%3E%3C/svg%3E';
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -52,7 +67,7 @@ const ProjectCard = ({ project, onEdit, onDelete, onCopyLink, onViewDetail }) =>
         </div>
         <div className="absolute top-3 right-3">
           <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${getCategoryColor(project.category)}`}>
-            {project.category.charAt(0).toUpperCase() + project.category.slice(1)}
+            {project.category ? project.category.charAt(0).toUpperCase() + project.category.slice(1) : 'Other'}
           </span>
         </div>
       </div>

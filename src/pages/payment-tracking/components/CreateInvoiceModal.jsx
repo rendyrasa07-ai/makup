@@ -7,22 +7,25 @@ const CreateInvoiceModal = ({ client, onClose, onSave }) => {
     invoiceNumber: `INV-${Date.now()}`,
     date: new Date().toISOString().split('T')[0],
     dueDate: '',
-    items: [{ description: '', amount: '' }],
+    items: [{ description: '', quantity: 1, amount: '' }],
     tax: 0,
+    discount: 0,
     notes: ''
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const total = formData.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-    const taxAmount = (total * formData.tax) / 100;
+    const subtotal = formData.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    const taxAmount = (subtotal * formData.tax) / 100;
+    const discountAmount = parseFloat(formData.discount) || 0;
     
     const invoice = {
       ...formData,
       client: client?.name || '',
-      total,
-      taxAmount,
-      grandTotal: total + taxAmount
+      subtotal,
+      tax: taxAmount,
+      discount: discountAmount,
+      grandTotal: subtotal + taxAmount - discountAmount
     };
     
     onSave(invoice);
@@ -42,7 +45,7 @@ const CreateInvoiceModal = ({ client, onClose, onSave }) => {
   const addItem = () => {
     setFormData({
       ...formData,
-      items: [...formData.items, { description: '', amount: '' }]
+      items: [...formData.items, { description: '', quantity: 1, amount: '' }]
     });
   };
 
@@ -55,9 +58,10 @@ const CreateInvoiceModal = ({ client, onClose, onSave }) => {
     }
   };
 
-  const total = formData.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-  const taxAmount = (total * formData.tax) / 100;
-  const grandTotal = total + taxAmount;
+  const subtotal = formData.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+  const taxAmount = (subtotal * formData.tax) / 100;
+  const discountAmount = parseFloat(formData.discount) || 0;
+  const grandTotal = subtotal + taxAmount - discountAmount;
 
   return (
     <div 
@@ -156,6 +160,15 @@ const CreateInvoiceModal = ({ client, onClose, onSave }) => {
                   />
                   <input
                     type="number"
+                    value={item.quantity}
+                    onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                    placeholder="Qty"
+                    required
+                    min="1"
+                    className="w-20 px-4 py-3 bg-surface border border-input rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <input
+                    type="number"
                     value={item.amount}
                     onChange={(e) => handleItemChange(index, 'amount', e.target.value)}
                     placeholder="Jumlah (Rp)"
@@ -191,6 +204,19 @@ const CreateInvoiceModal = ({ client, onClose, onSave }) => {
                 className="w-full px-4 py-3 bg-surface border border-input rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Diskon (Rp)
+              </label>
+              <input
+                type="number"
+                name="discount"
+                value={formData.discount}
+                onChange={handleChange}
+                min="0"
+                className="w-full px-4 py-3 bg-surface border border-input rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
           </div>
 
           <div className="bg-muted/50 rounded-xl p-4">
@@ -198,7 +224,7 @@ const CreateInvoiceModal = ({ client, onClose, onSave }) => {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal:</span>
                 <span className="font-medium">
-                  {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(total)}
+                  {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(subtotal)}
                 </span>
               </div>
               {formData.tax > 0 && (
@@ -206,6 +232,14 @@ const CreateInvoiceModal = ({ client, onClose, onSave }) => {
                   <span className="text-muted-foreground">Pajak ({formData.tax}%):</span>
                   <span className="font-medium">
                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(taxAmount)}
+                  </span>
+                </div>
+              )}
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Diskon:</span>
+                  <span className="font-medium text-success">
+                    -{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(discountAmount)}
                   </span>
                 </div>
               )}
